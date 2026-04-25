@@ -65,5 +65,31 @@ namespace JWT_Token.Application.Services
 
         }
 
+        public async Task<AppResponseDto> Login (LoginDto dto)
+        {
+            // Checking if the user exist
+            var user = await _userManager.FindByNameAsync(dto.Username);
+            if(user == null)
+            {
+                return new AppResponseDto
+                {
+                    Success = false,
+                    Errors = new List<string> { "Invalid Username or Password" }
+                };
+            }
+
+            var result = await _signInManager.CheckPasswordSignInAsync(user, dto.Password, false);
+            if (!result.Succeeded)
+            {
+                return new AppResponseDto
+                {
+                    Success = false,
+                    Errors = new List<string> { "Invalid Username or Password"}
+                };
+            }
+
+            return await CreateToken(user);
+        }
+
     }
 }

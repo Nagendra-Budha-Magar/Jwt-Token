@@ -6,7 +6,6 @@ namespace JWT_Token.Application.Services
     public interface IAuthService
     {
         Task<AppResponseDto> Register(RegisterDto dto, string role);
-        Task<bool> UserExist(string username);
         Task<AppResponseDto> Login(LoginDto dto);
     }
 }
