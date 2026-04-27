@@ -109,14 +109,17 @@ namespace JWT_Token.Application.Services
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id),  // What is subject id
-                new Claim(ClaimTypes.Name, user.UserName)       // What is subject name
+                new Claim(ClaimTypes.Name, user.UserName!)       // What is subject name And also ! tells it wont be null
             };
             // Adding role of a Subject
             var roles = await _userManager.GetRolesAsync(user);
             claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
-            // Getting Key
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection("Jwt:Key").Value));
+            // Checking if key is missing in appsetting.json
+            var jwtKey = _configuration.GetSection("Jwt:Key").Value
+            ?? throw new InvalidOperationException("Jwt:Key is missing in appsettings.json");
+            //Getting Key
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
             // Need for verifying if the token are correct using key + hash algorithm. Used for making 'Signature'
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
             // Blueprint of token
