@@ -1,4 +1,5 @@
 ﻿using JWT_Token.Models.Dtos;
+using JWT_Token.Models.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -10,12 +11,12 @@ namespace JWT_Token.Application.Services
 {
     public class AuthService : IAuthService
     {
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly UserManager<AppUser> _userManager;
+        private readonly SignInManager<AppUser> _signInManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IConfiguration _configuration;
 
-        public AuthService(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, RoleManager<IdentityRole> roleManager, IConfiguration configuration)
+        public AuthService(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, RoleManager<IdentityRole> roleManager, IConfiguration configuration)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -27,7 +28,7 @@ namespace JWT_Token.Application.Services
         {
 
             // Mapping Register Dto first
-            var user = new IdentityUser
+            var user = new AppUser
             {
                 UserName = dto.Username
             };
@@ -103,7 +104,7 @@ namespace JWT_Token.Application.Services
             };
         }
 
-        private async Task<string> CreateToken(IdentityUser user)
+        private async Task<string> CreateToken(AppUser user)
         {
             // This is the information about a subject.(Subject means user or admin)
             var claims = new List<Claim>

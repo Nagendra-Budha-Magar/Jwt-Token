@@ -1,4 +1,5 @@
 
+using JWT_Token.Application.Services;
 using JWT_Token.Data;
 using JWT_Token.Models.Entities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -16,7 +17,6 @@ namespace JWT_Token
         public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-
 
             // Add services to the container.
             builder.Services.AddControllers();
@@ -55,7 +55,7 @@ namespace JWT_Token
                     };
                 });
 
-
+            builder.Services.AddScoped<IAuthService, AuthService>();
 
             var app = builder.Build();
 
@@ -77,12 +77,15 @@ namespace JWT_Token
                 }
             }   // Scoped end here automatically
 
-            // after app = builder.Build()
-            app.UseSwagger(options =>
+            // After app = builder.Build()
+            if (app.Environment.IsDevelopment())
             {
-                options.RouteTemplate = "openapi/{documentName}.json";
-            });
-            app.MapScalarApiReference();
+                app.UseSwagger(options =>
+                {
+                    options.RouteTemplate = "openapi/{documentName}.json";
+                });
+                app.MapScalarApiReference();
+            }
             app.UseHttpsRedirection();
 
             // The Order is critical
