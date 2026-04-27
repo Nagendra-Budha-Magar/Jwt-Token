@@ -15,14 +15,26 @@ namespace JWT_Token.Controllers
             _authService = authService;
         }
 
-        public async Task<IActionResult> Register(RegisterDto request)
+        [HttpPost("Register")]
+        public async Task<IActionResult> Register(RegisterDto dto)
         {
-            var result = await _authService.Register(request, "User");
+            var result = await _authService.Register(dto, "User");
             if (!result.Success)
             {
                 return BadRequest(result);
             }
             return Ok(result);
+        }
+
+        [HttpPost("Login")]
+        public async Task<IActionResult> Login(LoginDto dto)
+        {
+            var token = await _authService.Login(dto);
+            if (!token.Success)
+            {
+                return BadRequest(token);
+            }
+            return Ok(token);
         }
     }
 }
