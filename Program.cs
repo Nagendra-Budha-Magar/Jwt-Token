@@ -4,6 +4,7 @@ using JWT_Token.Models.Entities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
+using Scalar.AspNetCore;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,9 +16,11 @@ namespace JWT_Token
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
 
+            // Add services to the container.
             builder.Services.AddControllers();
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
 
             // Register Identity (Before authentication)
             builder.Services.AddIdentity<AppUser, IdentityRole>()
@@ -47,10 +50,6 @@ namespace JWT_Token
                     };
                 });
 
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
-
             var app = builder.Build();
 
             // Creating a temprorary scope(can be said session)
@@ -71,13 +70,12 @@ namespace JWT_Token
                 }
             }   // Scoped end here automatically
 
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
+            // after app = builder.Build()
+            app.UseSwagger(options =>
             {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
-
+                options.RouteTemplate = "openapi/{documentName}.json";
+            });
+            app.MapScalarApiReference();
             app.UseHttpsRedirection();
 
             // The Order is critical
