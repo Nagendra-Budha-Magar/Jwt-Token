@@ -3,11 +3,12 @@ using JWT_Token.Application.Services;
 using JWT_Token.Data;
 using JWT_Token.Models.Entities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Scalar.AspNetCore;
 using Microsoft.OpenApi.Models;
+using Scalar.AspNetCore;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -41,19 +42,34 @@ namespace JWT_Token
                             Description = "Enter JWT token below"
                         }
                     };
+                    return Task.CompletedTask;
+                });
 
-                    // Apply security globally to all endpoints
-                    document.SecurityRequirements.Add(new OpenApiSecurityRequirement
+                // Target specific endpoints
+                options.AddOperationTransformer((operation, context, ct) =>
+                {
+                    var requiresAuth = context.Description.ActionDescriptor
+                        .EndpointMetadata
+                        .OfType<AuthorizeAttribute>()
+                        .Any();
+
+                    if (requiresAuth)
                     {
-                        [new OpenApiSecurityScheme
+                        operation.Security = new List<OpenApiSecurityRequirement>
                         {
-                            Reference = new OpenApiReference
+                            new OpenApiSecurityRequirement
                             {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = "Bearer"
+                                [new OpenApiSecurityScheme
+                                {
+                                    Reference = new OpenApiReference
+                                    {           
+                                        Type = ReferenceType.SecurityScheme,
+                                        Id = "Bearer"
+                                    }
+                                }] = Array.Empty<string>()
                             }
-                        }] = Array.Empty<string>()
-                    });
+                        };
+                    }
 
                     return Task.CompletedTask;
                 });
