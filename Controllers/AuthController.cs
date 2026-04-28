@@ -1,5 +1,6 @@
 ﻿using JWT_Token.Application.Services;
 using JWT_Token.Models.Dtos;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
