@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
+using Microsoft.OpenApi.Models;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -21,7 +22,43 @@ namespace JWT_Token
             // Add services to the container.
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+
+            // Add OpenAPI with JWT security scheme
+            builder.Services.AddOpenApi(options =>
+            {
+                options.AddDocumentTransformer((document, context, ct) =>
+                {
+                    document.Components ??= new OpenApiComponents();
+
+                    // Define the Bearer security scheme
+                    document.Components.SecuritySchemes = new Dictionary<string, OpenApiSecurityScheme>
+                    {
+                        ["Bearer"] = new OpenApiSecurityScheme
+                        {
+                            Type = SecuritySchemeType.Http,
+                            Scheme = "bearer",
+                            BearerFormat = "JWT",
+                            Description = "Enter JWT token below"
+                        }
+                    };
+
+                    // Apply security globally to all endpoints
+                    document.SecurityRequirements.Add(new OpenApiSecurityRequirement
+                    {
+                        [new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        }] = Array.Empty<string>()
+                    });
+
+                    return Task.CompletedTask;
+                });
+            });
+
 
             // Register AppDbContext with DI container using SQL Server connection string from appsettings.json
             builder.Services.AddDbContext<AppDbContext>(options =>
@@ -77,21 +114,23 @@ namespace JWT_Token
                 }
             }   // Scoped end here automatically
 
-            // After app = builder.Build()
-            if (app.Environment.IsDevelopment())
+            // Map Scalar UI
+            app.MapOpenApi();
+            app.MapScalarApiReference(options =>
             {
-                app.UseSwagger(options =>
+                options.Title = "My API";
+                options.Theme = ScalarTheme.BluePlanet; // optional, many themes available
+                options.Authentication = new ScalarAuthenticationOptions
                 {
-                    options.RouteTemplate = "openapi/{documentName}.json";
-                });
-                app.MapScalarApiReference();
-            }
+                    PreferredSecuritySchemes = new List<string> { "Bearer" }
+                };
+            });
+
             app.UseHttpsRedirection();
 
             // The Order is critical
             app.UseAuthentication();
             app.UseAuthorization();
-
 
             app.MapControllers();
 
